@@ -19,11 +19,30 @@ Ejecutemos el Script con la función ROC.CA
 
 ```{r}
 source('ROC.CA.R')
+source('LIFT.CA.R')
+source('medidasDF.R')
 ```
 
 Ejecutemos la función y generemos el gráfico
 
 ```{r}
-ROC.CA(real,predicted, positive = 1, digitsRound = 6)
+ROC.CA(real,predicted, positive = 1, digitsRound = 3)
+```
+
+```{r}
+LIFT.CA(real,predicted, positive = 1, digitsRound = 3)
+```
+
+
+```{r}
+ds <- medidasDF(real,predicted, positive = 1, digitsRound = 3)
+```
+
+```{r}
+ROC.CA(ds=ds, positive = 1, digitsRound = 3)
+```
+
+```{r}
+LIFT.CA(ds=ds, positive = 1, digitsRound = 3)
 ```
 
