@@ -1,35 +1,40 @@
-ROC.CA <- function(real,predicted,positive=1,digitsRound=4){
+ROC.CA <- function(real=NULL,predicted=NULL,ds=NULL,positive=1,digitsRound=4){
 #real: Vector con los valores reales de la clase
 #predicted: Vector con las probabilidades de la clase a predecir
+#ds: Dataframe con las medidas calculadas, salida de la función medidasDF
 #positive: Valor que toman los casos positivos
 #digitsRound: Cantidad de decimales a utilizar
-library(dplyr)
-library(tidyr)
-library(plotly)
-
-  if(!('medidasDF' %in% ls())){
-    source('medidasDF.R')
+  
+  library(dplyr)
+  library(tidyr)
+  library(plotly)
+  
+  if(is.null(ds)){
+    if(!exists('medidasDF')){
+      source('medidasDF.R')
+    }
+    ds <- medidasDF(real,predicted,positive,digitsRound)
   }
-  
-  df <- medidasDF(real,predicted,positive,digitsRound)
 
-  AUC <- sum((df$Sens+lag(df$Sens,default = 0))/2*(df$UnoMSpec-lag(df$UnoMSpec,default=0)))
+  AUC <- sum((ds$Sens+lag(ds$Sens,default = 0))/2*(ds$UnoMSpec-lag(ds$UnoMSpec,default=0)))
   
-  plt <- plot_ly(df %>% add_row(predicted=NA,
-                                P=0,
-                                N=0,
-                                Tot=0,
-                                PAcum=0,
-                                NAcum=0,
-                                TotAcum=0,
-                                Sens=0,
-                                UnoMSpec=0,
-                                Precision=NA,
-                                Accuracy=0,
-                                F1Score=NA,
-                                PropTot=0,
-                                Lift=NA,
-                                .before=1),
+  plt <- plot_ly(ds %>% 
+                   #Para que el gráfico comience en (0,0)
+                   add_row(predicted=NA,
+                           P=0,
+                           N=0,
+                           Tot=0,
+                           PAcum=0,
+                           NAcum=0,
+                           TotAcum=0,
+                           Sens=0,
+                           UnoMSpec=0,
+                           Precision=NA,
+                           Accuracy=0,
+                           F1Score=NA,
+                           PropTot=0,
+                           Lift=NA,
+                           .before=1),
                  x=~UnoMSpec,
                  y=~Sens,
                  type='scatter',
@@ -38,7 +43,7 @@ library(plotly)
                  text=~paste('Sensibilidad:',round(Sens,digits=digitsRound),'\n',
                              '1-Especificidad:',round(UnoMSpec,digits=digitsRound),'\n',
                              'Probabilidad:',predicted,'\n',
-                             'Población:',TotAcum,paste0('(',PropTot,'%)'),'\n',
+                             'Población:',TotAcum,paste0('(',round(PropTot,2)*100,'%)'),'\n',
                              'Casos Positivos:',PAcum,'\n',
                              'Casos Negativos:',NAcum,'\n',
                              'Accuracy:',round(Accuracy,digits=digitsRound),'\n',
@@ -48,8 +53,8 @@ library(plotly)
                               ),
                  line = list(color = 'rgb(205, 12, 24)')
                  ) %>%
-    add_trace(x=seq(0,1,length.out = nrow(df)+1),
-              y=seq(0,1,length.out = nrow(df)+1),
+    add_trace(x=seq(0,1,length.out = nrow(ds)+1),
+              y=seq(0,1,length.out = nrow(ds)+1),
               showlegend=F,
               hoverinfo='none',
               line = list(color = 'rgb(22, 96, 167)',dash='dash')
